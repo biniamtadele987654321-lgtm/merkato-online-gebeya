@@ -1,0 +1,77 @@
+@import "tailwindcss";
+
+@theme {
+  --color-ink: #1d2925;
+  --color-forest: #174f3b;
+  --color-lime: #d6ef76;
+  --color-paper: #f6f7f3;
+  --color-muted: #78827d;
+  --font-sans: "DM Sans", sans-serif;
+  --font-display: Manrope, sans-serif;
+  --shadow-card: 0 14px 40px rgba(29, 41, 37, 0.07);
+}
+
+:root {
+  font-family: 'DM Sans', sans-serif;
+  color: #1d2925;
+  background: #f6f7f3;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  min-width: 320px;
+  margin: 0;
+}
+
+@layer utilities {
+  .mx-auto.max-w-7xl {
+    max-width: 1800px;
+  }
+
+  .mx-auto.max-w-5xl {
+    max-width: min(1800px, calc(100% - 3rem));
+  }
+
+  .text-sm {
+    font-size: 0.9375rem;
+    line-height: 1.6;
+  }
+
+  .text-xs {
+    font-size: 0.8125rem;
+    line-height: 1.5;
+  }
+}
+
+[dir='rtl'] body {
+  text-align: start;
+}
+
+[lang='am'] body,
+[lang='ti'] body {
+  font-family: 'DM Sans', 'Noto Sans Ethiopic', sans-serif;
+}
+
+[lang='ar'] body {
+  font-family: 'Noto Sans Arabic', 'DM Sans', sans-serif;
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+}
+
+button:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+::selection {
+  color: #174f3b;
+  background: #d6ef76;
+}
