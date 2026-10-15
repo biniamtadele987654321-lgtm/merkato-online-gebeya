@@ -35,6 +35,7 @@ test('vendor, customer, and admin API routes require authentication', async () =
     ['GET', '/api/admin/dashboard'],
     ['GET', '/api/admin/users'],
     ['DELETE', '/api/admin/users/507f1f77bcf86cd799439011'],
+    ['GET', '/api/admin/vendors'],
     ['GET', '/api/admin/stores'],
     ['PATCH', '/api/admin/stores/507f1f77bcf86cd799439011/verification'],
     ['GET', '/api/admin/products'],

@@ -44,13 +44,13 @@ export default function HomePage() {
     <>
       <section className="mx-auto w-full max-w-[1800px] px-4 pb-8 pt-5 sm:px-6 md:px-8 md:pt-10 xl:px-10">
         <div className="relative isolate min-h-[540px] overflow-hidden rounded-[30px] bg-[#17372a] md:min-h-[590px]">
-          <img className="absolute inset-0 -z-10 h-full w-full object-cover object-[center_42%] md:object-[center_48%]" src="/assets/ethiopian-woven-baskets-market.png" alt="Colorful traditional Ethiopian woven baskets displayed at a market" fetchpriority="high" />
+          <img className="absolute inset-0 -z-10 h-full w-full object-cover object-[center_42%] md:object-[center_48%]" src="/assets/ethiopian-woven-baskets-market.png" alt={t('home.heroImageAlt')} fetchpriority="high" />
           <div className="absolute inset-0 -z-10 bg-gradient-to-r from-[#102a20]/95 via-[#17372a]/78 to-[#17372a]/25" />
           <div className="absolute inset-0 -z-10 bg-gradient-to-t from-[#102a20]/25 via-transparent to-[#102a20]/10" />
           <div className="absolute right-[8%] top-[13%] hidden rotate-3 rounded-[26px] border border-white/30 bg-white/15 p-3 shadow-2xl backdrop-blur-md lg:block">
             <div className="flex items-center gap-3 rounded-[19px] bg-white p-3 pr-6 text-ink">
               <span className="grid h-11 w-11 place-items-center rounded-2xl bg-lime text-xl">✦</span>
-              <span><span className="block text-xs font-bold">Local finds, delivered</span><span className="mt-1 block text-[11px] text-muted">One marketplace. All Ethiopia.</span></span>
+              <span><span className="block text-xs font-bold">{t('home.localDelivered')}</span><span className="mt-1 block text-[11px] text-muted">{t('home.allEthiopia')}</span></span>
             </div>
           </div>
           <div className="flex min-h-[540px] max-w-2xl flex-col justify-center px-7 py-16 text-white md:min-h-[590px] md:px-14">

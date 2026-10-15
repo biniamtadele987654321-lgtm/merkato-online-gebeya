@@ -22,7 +22,7 @@ export default function Header() {
   return (
     <header className="sticky top-0 z-40 border-b border-[#d6b15e]/30 bg-[#12372b] text-white shadow-lg shadow-black/10">
       <div className="mx-auto flex min-h-[76px] w-full max-w-[1800px] items-center gap-2 px-4 py-2 sm:gap-5 sm:px-6 xl:px-10">
-        <button onClick={() => setMenuOpen(!menuOpen)} className="rounded-xl p-2 text-white/85 transition-colors hover:bg-white/10 hover:text-[#f2ce78] lg:hidden" aria-label="Toggle menu" aria-expanded={menuOpen} aria-controls="primary-navigation">
+        <button onClick={() => setMenuOpen(!menuOpen)} className="rounded-xl p-2 text-white/85 transition-colors hover:bg-white/10 hover:text-[#f2ce78] lg:hidden" aria-label={t('menu')} aria-expanded={menuOpen} aria-controls="primary-navigation">
           {menuOpen ? <X size={20} /> : <Menu size={20} />}
         </button>
         <Link to="/" className="flex shrink-0 items-center gap-2 transition-transform hover:-translate-y-0.5">
@@ -52,8 +52,8 @@ export default function Header() {
         </nav>
         <label className="ml-auto flex shrink-0 items-center gap-1 rounded-full border border-white/20 bg-white/[.07] px-2 py-2 text-xs font-semibold transition-colors hover:border-[#e3bd68]/70 sm:ml-0 sm:gap-2 sm:px-3">
           <Languages size={15} className="text-[#e3bd68]" />
-          <span className="sr-only">Language</span>
-          <select aria-label="Select language" value={language} onChange={(event) => setLanguage(event.target.value)} className="max-w-[56px] cursor-pointer appearance-none bg-transparent text-xs text-white outline-none sm:max-w-[105px]">
+          <span className="sr-only">{t('language.label')}</span>
+          <select aria-label={t('language.select')} value={language} onChange={(event) => setLanguage(event.target.value)} className="max-w-[56px] cursor-pointer appearance-none bg-transparent text-xs text-white outline-none sm:max-w-[105px]">
             {languages.map((item) => <option key={item.code} value={item.code} className="text-ink">{item.native}</option>)}
           </select>
         </label>

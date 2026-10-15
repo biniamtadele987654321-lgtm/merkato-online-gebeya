@@ -1,5 +1,8 @@
-export function LoadingState({ label = 'Loading…' }) {
-  return <div className="grid min-h-[35vh] place-items-center text-sm text-muted">{label}</div>;
+import { useLanguage } from '../context/LanguageContext';
+
+export function LoadingState({ label }) {
+  const { t } = useLanguage();
+  return <div className="grid min-h-[35vh] place-items-center text-sm text-muted">{label || t('loading')}</div>;
 }
 
 export function ErrorMessage({ message }) {

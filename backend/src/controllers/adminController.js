@@ -10,7 +10,7 @@ const httpError = require('../utils/httpError');
 exports.dashboard = asyncHandler(async (req, res) => {
   const [users, vendors, products, orders, paid, pendingVendors] = await Promise.all([
     User.countDocuments(),
-    User.countDocuments({ role: 'vendor' }),
+    Store.countDocuments(),
     Product.countDocuments(),
     Order.countDocuments(),
     Order.aggregate([

@@ -10,6 +10,7 @@ router.get('/dashboard', adminController.dashboard);
 router.get('/users', adminController.listUsers);
 router.patch('/users/:id/role', adminController.updateUserRole);
 router.delete('/users/:id', adminController.deleteUser);
+router.get('/vendors', adminController.listStores);
 router.get('/stores', adminController.listStores);
 router.patch('/stores/:id/verification', adminController.verifyStore);
 router.get('/products', adminController.listProducts);
