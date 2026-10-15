@@ -28,6 +28,26 @@ test('health endpoint reports API availability', async () => {
   assert.deepEqual(await response.json(), { status: 'ok' });
 });
 
+test('production frontend can send authenticated API requests across origins', async () => {
+  const response = await fetch(`${baseUrl}/api/admin/vendors`, {
+    method: 'OPTIONS',
+    headers: {
+      Origin: 'https://merkato-online-gebeya.onrender.com',
+      'Access-Control-Request-Method': 'GET',
+      'Access-Control-Request-Headers': 'content-type,authorization',
+    },
+  });
+  assert.equal(response.status, 204);
+  assert.equal(response.headers.get('access-control-allow-origin'), 'https://merkato-online-gebeya.onrender.com');
+  assert.deepEqual(
+    response.headers.get('access-control-allow-methods').split(',').map((method) => method.trim()),
+    ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+  );
+  const allowedHeaders = response.headers.get('access-control-allow-headers').toLowerCase();
+  assert.match(allowedHeaders, /content-type/);
+  assert.match(allowedHeaders, /authorization/);
+});
+
 test('vendor, customer, and admin API routes require authentication', async () => {
   const protectedRoutes = [
     ['GET', '/api/vendors/me/dashboard'],

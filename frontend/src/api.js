@@ -1,4 +1,6 @@
-const API_URL = import.meta.env.VITE_API_URL || 'https://merkato-gebeya-api.onrender.com';
+const configuredApiUrl = import.meta.env.VITE_API_URL || 'https://merkato-gebeya-api.onrender.com';
+const apiBaseUrl = configuredApiUrl.replace(/\/+$/, '');
+const API_URL = apiBaseUrl.endsWith('/api') ? apiBaseUrl : `${apiBaseUrl}/api`;
 export const demoFallbackEnabled = import.meta.env.VITE_DEMO_FALLBACK !== 'false';
 
 export function isNetworkError(error) {

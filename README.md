@@ -15,6 +15,8 @@ A MERN marketplace foundation for Ethiopia, with 18 market categories and a 22-p
 4. From the project root, run `npm run dev` to start both the backend and frontend. Or run `npm run dev:backend` and `npm run dev:frontend` in separate terminals. Dependencies are installed in each package; run `npm install` inside `backend` and `frontend` only if their dependencies are missing.
 5. Open `http://localhost:5173`. Once connected, the API health check is at `http://localhost:5000/api/health`. If the API is configured for `localhost:5000` but the frontend is opened at `127.0.0.1:5173`, make sure both frontend origins are in `CLIENT_ORIGIN` (the example includes both); restart the API after changing `.env`.
 
+For the Render deployment, the frontend API client automatically targets the backend `/api` prefix (including when `VITE_API_URL` is set to the backend root). The backend allows `https://merkato-online-gebeya.onrender.com` for CORS by default; add any additional frontend origins to the comma-separated `CLIENT_ORIGIN` backend environment variable.
+
 On Windows PowerShell, start the backend and frontend in two separate terminals:
 
 ```powershell

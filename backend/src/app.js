@@ -9,8 +9,10 @@ const productRoutes = require('./routes/productRoutes');
 const vendorRoutes = require('./routes/vendorRoutes');
 
 const app = express();
-const allowedOrigins = (process.env.CLIENT_ORIGIN || 'http://localhost:5173')
-  .split(',')
+const allowedOrigins = [...new Set([
+  ...(process.env.CLIENT_ORIGIN || 'http://localhost:5173').split(','),
+  'https://merkato-online-gebeya.onrender.com',
+])]
   .map((origin) => origin.trim())
   .filter(Boolean);
 
@@ -27,6 +29,9 @@ app.use(
       callback(new Error('Origin is not allowed by CORS'));
     },
     credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
+    optionsSuccessStatus: 204,
   }),
 );
 app.use(express.json({ limit: '1mb' }));
