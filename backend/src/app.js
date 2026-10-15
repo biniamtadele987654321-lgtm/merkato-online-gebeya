@@ -10,30 +10,31 @@ const vendorRoutes = require('./routes/vendorRoutes');
 
 const app = express();
 const allowedOrigins = [...new Set([
-  ...(process.env.CLIENT_ORIGIN || 'http://localhost:5173').split(','),
+  'http://localhost:5173',
   'https://merkato-online-gebeya.onrender.com',
+  ...(process.env.CLIENT_ORIGIN || '').split(','),
 ])]
   .map((origin) => origin.trim())
   .filter(Boolean);
+const corsOptions = {
+  origin(origin, callback) {
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+      return;
+    }
+
+    callback(new Error('Origin is not allowed by CORS'));
+  },
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  optionsSuccessStatus: 204,
+};
 
 app.disable('x-powered-by');
 app.use(helmet());
-app.use(
-  cors({
-    origin(origin, callback) {
-      if (!origin || allowedOrigins.includes(origin)) {
-        callback(null, true);
-        return;
-      }
-
-      callback(new Error('Origin is not allowed by CORS'));
-    },
-    credentials: true,
-    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization'],
-    optionsSuccessStatus: 204,
-  }),
-);
+app.use(cors(corsOptions));
+app.options('*', cors(corsOptions));
 app.use(express.json({ limit: '1mb' }));
 app.use(express.urlencoded({ extended: false, limit: '1mb' }));
 app.use(morgan(process.env.NODE_ENV === 'production' ? 'combined' : 'dev'));
