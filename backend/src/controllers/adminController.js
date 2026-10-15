@@ -7,8 +7,28 @@ const User = require('../models/User');
 const asyncHandler = require('../utils/asyncHandler');
 const httpError = require('../utils/httpError');
 
+function escapeRegExp(value) {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+function searchPattern(value) {
+  const search = typeof value === 'string' ? value.trim() : '';
+  if (search.length > 100) throw httpError(400, 'Search query is too long');
+  return search ? new RegExp(escapeRegExp(search), 'i') : null;
+}
+
+function paginationFor(query, defaultLimit) {
+  const page = Math.max(1, Number.parseInt(query.page, 10) || 1);
+  const limit = Math.min(100, Math.max(1, Number.parseInt(query.limit, 10) || defaultLimit));
+  return { page, limit, skip: (page - 1) * limit };
+}
+
+function paginationResult(page, limit, total) {
+  return { page, limit, total, pages: Math.ceil(total / limit) };
+}
+
 exports.dashboard = asyncHandler(async (req, res) => {
-  const [users, vendors, products, orders, paid, pendingVendors] = await Promise.all([
+  const [users, vendors, products, orders, paid, pendingVendors, recentOrders, pendingStores] = await Promise.all([
     User.countDocuments(),
     Store.countDocuments(),
     Product.countDocuments(),
@@ -18,8 +38,18 @@ exports.dashboard = asyncHandler(async (req, res) => {
       { $group: { _id: null, revenue: { $sum: '$totalAmount' }, count: { $sum: 1 } } },
     ]),
     Store.countDocuments({ isVerified: false }),
+    Order.find()
+      .sort({ createdAt: -1 })
+      .limit(6)
+      .populate('customer', 'name'),
+    Store.find({ isVerified: false })
+      .sort({ createdAt: -1 })
+      .limit(6)
+      .populate('vendor', 'name email'),
   ]);
   res.json({
+    recentOrders,
+    pendingStores,
     stats: {
       users,
       vendors,
@@ -33,13 +63,16 @@ exports.dashboard = asyncHandler(async (req, res) => {
 });
 
 exports.listUsers = asyncHandler(async (req, res) => {
-  const page = Math.max(1, Number.parseInt(req.query.page, 10) || 1);
-  const limit = Math.min(100, Math.max(1, Number.parseInt(req.query.limit, 10) || 50));
+  const { page, limit, skip } = paginationFor(req.query, 50);
+  const pattern = searchPattern(req.query.search);
+  const filter = pattern
+    ? { $or: [{ name: pattern }, { email: pattern }, { phone: pattern }, { role: pattern }] }
+    : {};
   const [users, total] = await Promise.all([
-    User.find().sort({ createdAt: -1 }).skip((page - 1) * limit).limit(limit),
-    User.countDocuments(),
+    User.find(filter).sort({ createdAt: -1 }).skip(skip).limit(limit),
+    User.countDocuments(filter),
   ]);
-  res.json({ users, pagination: { page, limit, total, pages: Math.ceil(total / limit) } });
+  res.json({ users, pagination: paginationResult(page, limit, total) });
 });
 
 exports.deleteUser = asyncHandler(async (req, res) => {
@@ -102,24 +135,47 @@ exports.verifyStore = asyncHandler(async (req, res) => {
 });
 
 exports.listStores = asyncHandler(async (req, res) => {
-  const stores = await Store.find()
-    .populate('vendor', 'name email phone role')
-    .sort({ createdAt: -1 });
-  res.json({ stores });
+  const { page, limit, skip } = paginationFor(req.query, 25);
+  const pattern = searchPattern(req.query.search);
+  let filter = {};
+  if (pattern) {
+    const matchingVendors = await User.find({
+      $or: [{ name: pattern }, { email: pattern }, { phone: pattern }],
+    }).distinct('_id');
+    filter = {
+      $or: [{ name: pattern }, { address: pattern }, { vendor: { $in: matchingVendors } }],
+    };
+  }
+  const [stores, total] = await Promise.all([
+    Store.find(filter)
+      .populate('vendor', 'name email phone role')
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limit),
+    Store.countDocuments(filter),
+  ]);
+  res.json({ stores, pagination: paginationResult(page, limit, total) });
 });
 
 exports.listProducts = asyncHandler(async (req, res) => {
-  const page = Math.max(1, Number.parseInt(req.query.page, 10) || 1);
-  const limit = Math.min(100, Math.max(1, Number.parseInt(req.query.limit, 10) || 25));
+  const { page, limit, skip } = paginationFor(req.query, 25);
+  const pattern = searchPattern(req.query.search);
+  let filter = {};
+  if (pattern) {
+    const matchingStores = await Store.find({ name: pattern }).distinct('_id');
+    filter = {
+      $or: [{ title: pattern }, { category: pattern }, { vendor: { $in: matchingStores } }],
+    };
+  }
   const [products, total] = await Promise.all([
-    Product.find()
+    Product.find(filter)
       .sort({ createdAt: -1 })
-      .skip((page - 1) * limit)
+      .skip(skip)
       .limit(limit)
       .populate('vendor', 'name'),
-    Product.countDocuments(),
+    Product.countDocuments(filter),
   ]);
-  res.json({ products, pagination: { page, limit, total, pages: Math.ceil(total / limit) } });
+  res.json({ products, pagination: paginationResult(page, limit, total) });
 });
 
 exports.deleteProduct = asyncHandler(async (req, res) => {
@@ -157,16 +213,35 @@ exports.setProductVisibility = asyncHandler(async (req, res) => {
 });
 
 exports.listOrders = asyncHandler(async (req, res) => {
-  const page = Math.max(1, Number.parseInt(req.query.page, 10) || 1);
-  const limit = Math.min(100, Math.max(1, Number.parseInt(req.query.limit, 10) || 25));
+  const { page, limit, skip } = paginationFor(req.query, 25);
+  const pattern = searchPattern(req.query.search);
+  let filter = {};
+  if (pattern) {
+    const matchingCustomers = await User.find({
+      $or: [{ name: pattern }, { email: pattern }, { phone: pattern }],
+    }).distinct('_id');
+    const matchingOrderIds = await Order.aggregate([
+      { $match: { $expr: { $regexMatch: { input: { $toString: '$_id' }, regex: pattern.source, options: 'i' } } } },
+      { $project: { _id: 1 } },
+    ]);
+    filter = {
+      $or: [
+        { _id: { $in: matchingOrderIds.map(({ _id }) => _id) } },
+        { customer: { $in: matchingCustomers } },
+        { paymentStatus: pattern },
+        { deliveryStatus: pattern },
+        { paymentMethod: pattern },
+      ],
+    };
+  }
   const [orders, total] = await Promise.all([
-    Order.find()
+    Order.find(filter)
       .sort({ createdAt: -1 })
-      .skip((page - 1) * limit)
+      .skip(skip)
       .limit(limit)
       .populate('customer', 'name email phone')
       .populate('items.product', 'title'),
-    Order.countDocuments(),
+    Order.countDocuments(filter),
   ]);
-  res.json({ orders, pagination: { page, limit, total, pages: Math.ceil(total / limit) } });
+  res.json({ orders, pagination: paginationResult(page, limit, total) });
 });

@@ -10,13 +10,19 @@ function positiveInteger(value, fallback, max) {
   return Number.isInteger(parsed) && parsed > 0 ? Math.min(parsed, max) : fallback;
 }
 
+function escapeRegExp(value) {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
 exports.list = asyncHandler(async (req, res) => {
   const page = positiveInteger(req.query.page, 1, Number.MAX_SAFE_INTEGER);
   const limit = positiveInteger(req.query.limit, 24, 100);
   const filter = { isActive: { $ne: false } };
 
-  if (typeof req.query.category === 'string' && req.query.category.length <= 100) {
-    filter.category = req.query.category;
+  if (typeof req.query.category === 'string' && req.query.category.trim()) {
+    const category = req.query.category.trim();
+    if (category.length > 100) throw httpError(400, 'Category filter is too long');
+    filter.category = new RegExp(`^${escapeRegExp(category)}$`, 'i');
   }
   const verifiedStoreIds = await Store.find({ isVerified: true }).distinct('_id');
   filter.vendor = typeof req.query.vendor === 'string' && mongoose.isValidObjectId(req.query.vendor)

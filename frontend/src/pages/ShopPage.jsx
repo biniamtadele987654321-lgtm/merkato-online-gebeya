@@ -41,15 +41,29 @@ export default function ShopPage() {
   const { t } = useLanguage();
 
   useEffect(() => {
+    setMinPrice(params.get('minPrice') || '');
+    setMaxPrice(params.get('maxPrice') || '');
+  }, [params]);
+
+  useEffect(() => {
     setLoading(true);
     setError('');
+    let current = true;
     api(`/products?limit=24&${params.toString()}`)
       .then((result) => {
+        if (!current) return;
         setProducts(result.products);
         setPagination(result.pagination);
       })
-      .catch((requestError) => setError(requestError.message))
-      .finally(() => setLoading(false));
+      .catch((requestError) => {
+        if (current) setError(requestError.message);
+      })
+      .finally(() => {
+        if (current) setLoading(false);
+      });
+    return () => {
+      current = false;
+    };
   }, [params]);
 
   function setCategory(value) {
